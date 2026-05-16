@@ -28,6 +28,7 @@
 #cmakedefine01 HARDINFO2_VK_WAYLAND
 #cmakedefine01 HARDINFO2_VK_X11
 #cmakedefine01 HARDINFO2_NOSSL
+#cmakedefine01 HARDINFO2_FLATPAK
 
 #define Release 1
 #define ON 1

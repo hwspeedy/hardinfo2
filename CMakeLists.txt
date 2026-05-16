@@ -32,6 +32,7 @@ option(HARDINFO2_VK "Build vulkan benchmark" 1)
 option(HARDINFO2_VK_WAYLAND "Build Vulkan with wayland support" 1)
 option(HARDINFO2_VK_X11 "Build Vulkan with X11 support" 1)
 option(HARDINFO2_NOSSL "Build for very old distro with no https" 0)
+option(HARDINFO2_FLATPAK "Build for FlatPak" 0)
 
 #To allow manually setting QT6 only from cmd line
 if(HARDINFO2_QT6)
