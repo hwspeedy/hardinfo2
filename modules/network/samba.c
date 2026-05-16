@@ -104,7 +104,7 @@ void scan_samba(void)
         smb_shares_list = g_strdup("");
     }
 
-    if (g_file_get_contents("/etc/samba/smb.conf",
+    if (hardinfo_file_get_contents("/etc/samba/smb.conf",
                             &str, &length, NULL)) {
         shell_status_update("Scanning SAMBA shares...");
         scan_samba_from_string(str, length);

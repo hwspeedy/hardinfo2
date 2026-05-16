@@ -200,12 +200,12 @@ static char *determine_devname_for_hwmon_path(char *path) {
 
     // device name
     tmp = g_strdup_printf("%s/name", path);
-    g_file_get_contents(tmp, &devname, NULL, NULL);
+    hardinfo_file_get_contents(tmp, &devname, NULL, NULL);
     g_free(tmp);
     if(devname && strstr(devname,"w1_slave_temp")){//1 wire support
         g_free(devname);devname=NULL;
         tmp = g_strdup_printf("%s/device/name", path);
-        g_file_get_contents(tmp, &devname, NULL, NULL);
+        hardinfo_file_get_contents(tmp, &devname, NULL, NULL);
         g_free(tmp);
 	tmp=devname;
 	devname = g_strdup_printf("1W:%s",devname);
@@ -320,7 +320,7 @@ static gboolean read_raw_hwmon_value(gchar *path_hwmon, const gchar *item_path_f
         return FALSE;
 
     full_path = g_strdup_printf(item_path_format, path_hwmon, item_id);
-    file_result = g_file_get_contents(full_path, result, NULL, NULL);
+    file_result = hardinfo_file_get_contents(full_path, result, NULL, NULL);
 
     g_free(full_path);
 
@@ -446,7 +446,7 @@ static void read_sensors_acpi(void) {
                     g_strdup_printf("%s/%s/temperature", path_tz, entry);
                 gchar *contents;
 
-                if (g_file_get_contents(path, &contents, NULL, NULL)) {
+                if (hardinfo_file_get_contents(path, &contents, NULL, NULL)) {
                     int temperature;
 
                     sscanf(contents, "temperature: %d C", &temperature);
@@ -510,7 +510,7 @@ static void read_sensors_windfarm(void)
             while ((entry = g_dir_read_name(wf))) {
                 if (g_regex_match(regex, entry, 0, NULL)) {
                     gchar *path = g_strdup_printf("%s/%s", path_wf, entry);
-                    if (g_file_get_contents(path, &tmp, NULL, NULL)) {
+                    if (hardinfo_file_get_contents(path, &tmp, NULL, NULL)) {
 
                         if (sensor->with_decimal_p) {
                             // format source
@@ -550,7 +550,7 @@ static void read_sensors_sys_thermal(void) {
                 gchar *path = g_strdup_printf("%s/%s/temp", path_tz, entry);
                 gchar *contents;
 
-                if (g_file_get_contents(path, &contents, NULL, NULL)) {
+                if (hardinfo_file_get_contents(path, &contents, NULL, NULL)) {
                     int temperature;
 
                     sscanf(contents, "%d", &temperature);
@@ -578,7 +578,7 @@ static void read_sensors_cpufreq(void) {
     int cpuid=0;
 
     cpupath=g_strdup_printf("/sys/devices/system/cpu/cpu%d/cpufreq/scaling_cur_freq",cpuid);
-    while(g_file_get_contents(cpupath, &contents, NULL, NULL)) {
+    while(hardinfo_file_get_contents(cpupath, &contents, NULL, NULL)) {
         int freq;
 	gchar *cpuid_str;
 	if(contents && (sscanf(contents, "%d", &freq)==1)) {
@@ -595,7 +595,7 @@ static void read_sensors_cpufreq(void) {
     }
     g_free(cpupath);
 
-    if (!cpuid && g_file_get_contents(path, &contents, NULL, NULL)) {
+    if (!cpuid && hardinfo_file_get_contents(path, &contents, NULL, NULL)) {
         float freq;
 	gchar *p,*cpuid_str;
 
@@ -618,7 +618,7 @@ static void read_sensors_omnibook(void) {
     const gchar *path_ob = "/proc/omnibook/temperature";
     gchar *contents;
 
-    if (g_file_get_contents(path_ob, &contents, NULL, NULL)) {
+    if (hardinfo_file_get_contents(path_ob, &contents, NULL, NULL)) {
         int temperature;
 
         sscanf(contents, "CPU temperature: %d C", &temperature);
@@ -653,7 +653,7 @@ static void read_sensors_ipmi(void) {
     //find_program("ipmi-sensors")
     //const gchar *cmd_line="sh -c 'ipmi-sensors --ignore-not-available-sensors|grep -v Presence|grep -v N/A'";
     //gboolean spawned = hardinfo_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
-    gboolean spawned=g_file_get_contents("/run/hardinfo2/ipmi_sensors", &out, NULL, NULL);
+    gboolean spawned=hardinfo_file_get_contents("/run/hardinfo2/ipmi_sensors", &out, NULL, NULL);
 
     if (spawned && out) {
         fixline(out, add_ipmi_sensors);

@@ -85,7 +85,7 @@ void apt_flavors_scan(gchar **pretty_name, gchar **codename, gchar **id, gchar *
 
     i=0;
     while(!found && apt_flavors[i].name){
-        if((apt_flavors[i].aptname[0]=='/') && g_file_get_contents(apt_flavors[i].aptname, &contents, NULL, NULL)) {
+        if((apt_flavors[i].aptname[0]=='/') && hardinfo_file_get_contents(apt_flavors[i].aptname, &contents, NULL, NULL)) {
 	    found=1;
             f = &apt_flavors[i];
 	    g_free(contents);
@@ -106,7 +106,7 @@ void apt_flavors_scan(gchar **pretty_name, gchar **codename, gchar **id, gchar *
     if(found){
         //find version
         version=NULL; split=NULL; contents=NULL;
-        if (f && f->filename && (strlen(f->filename)>1) && g_file_get_contents(f->filename, &contents, NULL, NULL)){
+        if (f && f->filename && (strlen(f->filename)>1) && hardinfo_file_get_contents(f->filename, &contents, NULL, NULL)){
 	    split = g_strsplit(contents, "\n", 0);
 	    if (split) for (line = split; *line; line++) {
 		if (!f->versiontext ||
@@ -483,12 +483,12 @@ static Distro parse_os_release(void)
     gchar *orig_id=NULL, *orig_name=NULL;
 
     //some overrides the /etc/os-release, so we use usr/lib first and fixes distro via Apt, OLD DISTRO fallback to /etc/os.
-    if (!g_file_get_contents("/usr/lib/os-release", &contents, NULL, NULL))
-        if (!g_file_get_contents("/etc/os-release", &contents, NULL, NULL))
+    if (!hardinfo_file_get_contents("/usr/lib/os-release", &contents, NULL, NULL))
+        if (!hardinfo_file_get_contents("/etc/os-release", &contents, NULL, NULL))
             return (Distro) {};
 
     //force /etc/os-release for some distros
-    if (!g_file_get_contents("/etc/os-release", &content2, NULL, NULL)) return (Distro) {};
+    if (!hardinfo_file_get_contents("/etc/os-release", &content2, NULL, NULL)) return (Distro) {};
     if(strstr(content2,"CachyOS")) {
         g_free(contents);
 	contents=content2;
@@ -568,7 +568,7 @@ static Distro parse_os_release(void)
     }
 
     //Based on Alpine Linux add to distro string
-    if(pretty_name && !g_str_equal(id, "alpine")  && g_file_get_contents("/etc/alpine-release", &contents , NULL, NULL) ) {
+    if(pretty_name && !g_str_equal(id, "alpine")  && hardinfo_file_get_contents("/etc/alpine-release", &contents , NULL, NULL) ) {
         gchar *t,*p=contents;
         while(*p && ((*p>'9') || (*p<'0'))) p++;
 	strend(p,' ');
@@ -576,7 +576,7 @@ static Distro parse_os_release(void)
         g_free(contents);
     } else
     //Based on Fedora Linux add to distro string
-    if(pretty_name && !g_str_equal(id, "fedora")  && g_file_get_contents("/etc/fedora-release", &contents , NULL, NULL) ) {
+    if(pretty_name && !g_str_equal(id, "fedora")  && hardinfo_file_get_contents("/etc/fedora-release", &contents , NULL, NULL) ) {
         gchar *t,*p=contents;
         while(*p && ((*p>'9') || (*p<'0'))) p++;
 	strend(p,' ');
@@ -587,7 +587,7 @@ static Distro parse_os_release(void)
         g_free(contents);
     } else
     //Based on RedHat Linux add to distro string
-    if(pretty_name && !g_str_equal(id, "rhel") && !g_str_equal(id, "fedora") && g_file_get_contents("/etc/redhat-release", &contents , NULL, NULL) ) {
+    if(pretty_name && !g_str_equal(id, "rhel") && !g_str_equal(id, "fedora") && hardinfo_file_get_contents("/etc/redhat-release", &contents , NULL, NULL) ) {
         gchar *t,*p=contents;
         while(*p && ((*p>'9') || (*p<'0'))) p++;
 	strend(p,' ');
@@ -609,19 +609,19 @@ static Distro parse_os_release(void)
         g_free(contents);
     }
     //Based on Arch Linux add to distro string
-    if(pretty_name && !g_str_equal(id, "arch") && g_file_get_contents("/etc/arch-release", &contents , NULL, NULL) ) {
+    if(pretty_name && !g_str_equal(id, "arch") && hardinfo_file_get_contents("/etc/arch-release", &contents , NULL, NULL) ) {
        gchar *t;
        t=pretty_name; pretty_name=g_strdup_printf("%s - Arch Linux", t); g_free(t);
        g_free(contents);
     }
     //Based on Slackware add to distro string
-    if(pretty_name && !g_str_equal(id, "slackware") && g_file_get_contents("/etc/slackware-version", &contents , NULL, NULL) ) {
+    if(pretty_name && !g_str_equal(id, "slackware") && hardinfo_file_get_contents("/etc/slackware-version", &contents , NULL, NULL) ) {
        gchar *t;
        t=pretty_name; pretty_name=g_strdup_printf("%s - Slackware", t); g_free(t);
        g_free(contents);
     }
     //Based on debian add to distro string
-    if(pretty_name && id && (g_file_get_contents("/etc/debian_version", &contents , NULL, NULL) || g_str_equal(id,"debian")) ) {
+    if(pretty_name && id && (hardinfo_file_get_contents("/etc/debian_version", &contents , NULL, NULL) || g_str_equal(id,"debian")) ) {
        orig_id=id;
        id=g_strdup("debian");
        orig_name=pretty_name;
@@ -702,7 +702,7 @@ static Distro detect_distro(void)
 
     //if not found via os-release then find distro via files
     for (i = 0; distro_db[i].file; i++) {
-        if (!g_file_get_contents(distro_db[i].file, &contents, NULL, NULL))
+        if (!hardinfo_file_get_contents(distro_db[i].file, &contents, NULL, NULL))
             continue;
 
 	distro.distro=g_strdup(contents);
@@ -806,7 +806,7 @@ computer_get_lsm(void)
 {
     gchar *contents;
 
-    if (!g_file_get_contents("/sys/kernel/security/lsm", &contents, NULL, NULL))
+    if (!hardinfo_file_get_contents("/sys/kernel/security/lsm", &contents, NULL, NULL))
         return g_strdup(_("Unknown"));
 
     return contents;

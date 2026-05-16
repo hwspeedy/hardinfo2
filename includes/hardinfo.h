@@ -189,13 +189,16 @@ gchar *hardinfo_clean_label(const gchar *v, int replacing);
 /* hardinfo uses the values as {ht,x}ml, apparently */
 gchar *hardinfo_clean_value(const gchar *v, int replacing);
 
-/* Same as hardinfo_spawn_command_line_sync(), but calls shell_status_pulse()
- * before. */
+/* these two functions handles sandbox if flatpak */
+gboolean hardinfo_file_get_contents(const gchar* filename, gchar** contents,
+				    gsize* length,GError** error);
+
 gboolean hardinfo_spawn_command_line_sync(const gchar *command_line,
                                           gchar **standard_output,
                                           gchar **standard_error,
                                           gint *exit_status,
                                           GError **error);
+
 
 /* a marker in text to point out problems, using markup where possible */
 const char *problem_marker();

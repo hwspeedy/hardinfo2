@@ -1361,6 +1361,25 @@ gchar *hardinfo_clean_value(const gchar *v, int replacing) {
     return clean;
 }
 
+gboolean hardinfo_file_get_contents(const gchar* filename, gchar** contents,
+				    gsize* length,GError** error)
+{
+    gboolean ret;
+    gchar *file_name=(gchar *)filename;
+
+#if(HARDINFO2_FLATPAK)
+    file_name=g_strconcat("/run/host/", filename, NULL);
+#endif
+
+    ret=g_file_get_contents(file_name,contents,length,error);
+
+#if(HARDINFO2_FLATPAK)
+    g_free(file_name);
+#endif
+
+    return ret;
+}
+
 gboolean hardinfo_spawn_command_line_sync(const gchar *command_line,
                                           gchar **standard_output,
                                           gchar **standard_error,
