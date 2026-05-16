@@ -652,7 +652,7 @@ static void read_sensors_ipmi(void) {
 
     //find_program("ipmi-sensors")
     //const gchar *cmd_line="sh -c 'ipmi-sensors --ignore-not-available-sensors|grep -v Presence|grep -v N/A'";
-    //gboolean spawned = g_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
+    //gboolean spawned = hardinfo_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
     gboolean spawned=g_file_get_contents("/run/hardinfo2/ipmi_sensors", &out, NULL, NULL);
 
     if (spawned && out) {

@@ -1298,7 +1298,7 @@ static GSList *memory_info_from_udev(void)
     gchar *stdout;
     int i;
 
-    if (!g_spawn_command_line_sync("/usr/bin/udevadm info -e", &stdout, NULL,
+    if (!hardinfo_spawn_command_line_sync("/usr/bin/udevadm info -e", &stdout, NULL,
                                    NULL, NULL))
         return NULL;
 

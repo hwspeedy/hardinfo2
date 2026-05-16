@@ -277,7 +277,7 @@ void cb_open_updates_page()
     gboolean spawned;
 
     cmd_line=g_strdup("sh -c 'LC_ALL=C uname -m'");
-    spawned = g_spawn_command_line_sync(cmd_line, &arch, &err, NULL, NULL);
+    spawned = hardinfo_spawn_command_line_sync(cmd_line, &arch, &err, NULL, NULL);
     g_free(cmd_line);
     if (!spawned || strlen(arch)<1) {
       if(arch) g_free(arch);

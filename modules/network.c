@@ -133,7 +133,7 @@ void scan_statistics(gboolean reload)
     if ((netstat_path = find_program("ip"))) {ip=1; command_line = g_strdup_printf("%s -s -s link show", netstat_path);}
     else if ((netstat_path = find_program("netstat"))) command_line = g_strdup_printf("%s -s", netstat_path);
     if(command_line){
-    spawned = g_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
+    spawned = hardinfo_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
 
     if (spawned && out) {
         p=out;
@@ -218,7 +218,7 @@ void scan_dns(gboolean reload)
 
     if ((resolvectl_path = find_program("resolvectl"))) command_line = g_strdup_printf("%s status", resolvectl_path);
     if(command_line){
-      spawned = g_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
+      spawned = hardinfo_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
       if (spawned && out) {
         p=out;
 	while (p && *p) {
@@ -299,7 +299,7 @@ void scan_route(gboolean reload)
     if ((route_path = find_program("ip"))) {ip=1;command_line = g_strdup_printf("%s route", route_path);}
     else if ((route_path = find_program("route"))) command_line = g_strdup_printf("%s -n", route_path);
     if(command_line){
-    spawned = g_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
+    spawned = hardinfo_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
 
     if(spawned && out) {
 	p=out;
@@ -420,7 +420,7 @@ void scan_connections(gboolean reload)
     if ((netstat_path = find_program("ss"))) command_line = g_strdup_printf("%s -antu", netstat_path);
     else if ((netstat_path = find_program("netstat"))) command_line = g_strdup_printf("%s -antu", netstat_path);
     if(command_line){
-    spawned = g_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
+    spawned = hardinfo_spawn_command_line_sync(command_line, &out, &err, NULL, NULL);
 
     if(spawned && out) {
         out=strreplace(out,"%","-");

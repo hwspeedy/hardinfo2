@@ -37,9 +37,9 @@ static bench_value storage_runtest() {
 
     while(t){
         if(t==1)
-	   spawned = g_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
+	   spawned = hardinfo_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
         else
-	   spawned = g_spawn_command_line_sync(cmd_line_long, &out, &err, NULL, NULL);
+	   spawned = hardinfo_spawn_command_line_sync(cmd_line_long, &out, &err, NULL, NULL);
         if (spawned && err){
 	    i=0;
 	    if( (s=strstr(err,"\n")) && (s=strstr(s+1,"\n")) ) {

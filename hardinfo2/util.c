@@ -1367,9 +1367,21 @@ gboolean hardinfo_spawn_command_line_sync(const gchar *command_line,
                                           gint *exit_status,
                                           GError **error)
 {
-    //shell_status_pulse();
-    return g_spawn_command_line_sync(command_line, standard_output,
-                                     standard_error, exit_status, error);
+    gboolean ret;
+    gchar *cmd_line=(gchar *)command_line;
+
+#if(HARDINFO2_FLATPAK)
+    cmd_line=g_strconcat("flatpak-spawn --host ", command_line, NULL);
+#endif
+    
+    ret=g_spawn_command_line_sync(cmd_line, standard_output,
+				  standard_error, exit_status, error);
+
+#if(HARDINFO2_FLATPAK)
+    g_free(cmd_line);
+#endif
+    
+    return ret;
 }
 
 

@@ -351,13 +351,13 @@ gchar *ldlinux_hwcaps() {
 
     if(PTR_BITS==64){//64bit
         cmd_line=g_strdup("sh -c 'LC_ALL=C /usr/lib64/ld-linux-x86-64.so.2 --help'");
-	spawned = g_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
+	spawned = hardinfo_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
 	g_free(cmd_line);
 	if (!spawned || strlen(out)<100) {
 	   if(out) {g_free(out);out=NULL;}
 	   if(err) {g_free(err);err=NULL;}
 	   cmd_line=g_strdup("sh -c 'LC_ALL=C /lib64/ld-linux-x86-64.so.2 --help'");
-	   spawned = g_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
+	   spawned = hardinfo_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
 	   g_free(cmd_line);
 	}
 	if (spawned && strlen(out)>=100) {
@@ -376,7 +376,7 @@ gchar *ldlinux_hwcaps() {
 	}
     } else {//32bit and others
         cmd_line=g_strdup("sh -c 'LC_ALL=C uname -m'");
-	spawned = g_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
+	spawned = hardinfo_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
 	g_free(cmd_line);
 	gchar *t=supported;
 	if (spawned && strlen(out)>=1) {
@@ -505,7 +505,7 @@ gchar *get_storage_home_models(void)
     char cmd_lineblk[100];
 
     //lookup home disk by df - only works on newer machines
-    spawned = g_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
+    spawned = hardinfo_spawn_command_line_sync(cmd_line, &out, &err, NULL, NULL);
     if(spawned && out){
         if(strstr(out,"/dev/") && !strstr(out,"mapper") && !strstr(out,"/dev/root") ) homepath=strdup(out+5);
 	if(strstr(out,"mapper")) {
@@ -514,7 +514,7 @@ gchar *get_storage_home_models(void)
 	    sprintf(cmd_lineblk,"sh -c 'lsblk -l -s %s|tail -1'",out);
 	    g_free(out);
 	    g_free(err);
-            spawned = g_spawn_command_line_sync(cmd_lineblk, &out, &err, NULL, NULL);
+            spawned = hardinfo_spawn_command_line_sync(cmd_lineblk, &out, &err, NULL, NULL);
 	    if(spawned && out){
 	        homepath=g_strdup(out);
 	    }
@@ -524,7 +524,7 @@ gchar *get_storage_home_models(void)
     g_free(err);
 
     if(!homepath) {  //simple systems - only 1 disk
-        spawned = g_spawn_command_line_sync(cmd_line1disk, &out, &err, NULL, NULL);
+        spawned = hardinfo_spawn_command_line_sync(cmd_line1disk, &out, &err, NULL, NULL);
         if(spawned && out){
 	    if(strstr(out,"disk") && (strstr(out,"\n")==(out+strlen(out)-1)) ) {
                 homepath=strdup(out);

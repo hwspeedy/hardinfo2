@@ -710,7 +710,7 @@ gchar *processor_name(GSList *processors) {
     if(!compat) {//search dmesg if no DT - older distros
         gboolean spawned;
 	gchar *out, *err, *p;
-	spawned = g_spawn_command_line_sync("sh -c 'dmesg -t|grep cpufreq\\  |cut -f 1 -d \\ '", &out, &err, NULL, NULL);
+	spawned = hardinfo_spawn_command_line_sync("sh -c 'dmesg -t|grep cpufreq\\  |cut -f 1 -d \\ '", &out, &err, NULL, NULL);
         rev=1;
 	if (spawned) {
 	    p=out;while(p && *p>' ') p++; if(p) *p=0;
