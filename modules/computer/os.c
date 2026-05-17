@@ -791,10 +791,9 @@ computer_get_selinux(void)
 {
     int r;
 #if(HARDINFO2_FLATPAK)
-    gchar *found = find_program("selinuxenabled");
+    gboolean found = check_program("selinuxenabled");
     if (!found)
         return _("Not installed");
-    g_free(found);
     printf("SELINUXENABLED FOUND\n");
 #endif
     gboolean spawned = hardinfo_spawn_command_line_sync("selinuxenabled", NULL, NULL, &r, NULL);
