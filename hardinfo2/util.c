@@ -93,11 +93,13 @@ gchar *find_program(gchar *program_name)
     }
 
     /* our search has failed; use GLib's search (which uses $PATH env var) */
+#if(HARDINFO2_FLATPAK)
+#else
     if ((temp = g_find_program_in_path(program_name))) {
     	g_hash_table_insert(cache, program_name, g_strdup(temp));
     	return temp;
     }
-
+#endif
     return NULL;
 }
 
@@ -1392,7 +1394,7 @@ gboolean hardinfo_file_test(const gchar* filename, GFileTest test)
     ret=g_file_test(file_name,test);
 
 #if(HARDINFO2_FLATPAK)
-    printf("file test %s=%d\n",file_name,ret?1:0);
+    //printf("file test %s=%d\n",file_name,ret?1:0);
     g_free(file_name);
 #endif
 
