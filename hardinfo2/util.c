@@ -84,7 +84,7 @@ gchar *find_program(gchar *program_name)
     for (i = 0; path[i]; i++) {
     	temp = g_build_filename(path[i], program_name, NULL);
 
-    	if (g_file_test(temp, G_FILE_TEST_IS_EXECUTABLE)) {
+	if (hardinfo_file_test(temp, G_FILE_TEST_IS_EXECUTABLE)) {
     		g_hash_table_insert(cache, program_name, g_strdup(temp));
 		return temp;
     	}
@@ -1372,6 +1372,24 @@ gboolean hardinfo_file_get_contents(const gchar* filename, gchar** contents,
 #endif
 
     ret=g_file_get_contents(file_name,contents,length,error);
+
+#if(HARDINFO2_FLATPAK)
+    g_free(file_name);
+#endif
+
+    return ret;
+}
+
+gboolean hardinfo_file_test(const gchar* filename, GFileTest test)
+{
+    gboolean ret;
+    gchar *file_name=(gchar *)filename;
+
+#if(HARDINFO2_FLATPAK)
+    file_name=g_strconcat("/run/host/", filename, NULL);
+#endif
+
+    ret=g_file_test(file_name,test);
 
 #if(HARDINFO2_FLATPAK)
     g_free(file_name);

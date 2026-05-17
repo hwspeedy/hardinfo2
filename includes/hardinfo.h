@@ -189,10 +189,10 @@ gchar *hardinfo_clean_label(const gchar *v, int replacing);
 /* hardinfo uses the values as {ht,x}ml, apparently */
 gchar *hardinfo_clean_value(const gchar *v, int replacing);
 
-/* these two functions handles sandbox if flatpak */
+/* these functions handles sandbox if flatpak */
+gboolean hardinfo_file_test(const gchar* filename, GFileTest test);
 gboolean hardinfo_file_get_contents(const gchar* filename, gchar** contents,
 				    gsize* length,GError** error);
-
 gboolean hardinfo_spawn_command_line_sync(const gchar *command_line,
                                           gchar **standard_output,
                                           gchar **standard_error,
