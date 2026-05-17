@@ -24,12 +24,83 @@ gint comparUsers (gpointer a, gpointer b) {return strcmp( (char*)a, (char*)b );}
 
 gchar *users = NULL;
 
+static unsigned atou(char **s)
+{
+	unsigned x;
+	for (x=0; (unsigned)(**s-'0')<10U; ++*s) x=10*x+(**s-'0');
+	return x;
+}
+
+int __hardinfo_getpwent_a(FILE *f, struct passwd *pw, char **line, size_t *size, struct passwd **res)
+{
+	ssize_t l;
+	char *s;
+	int rv = 0;
+	//int cs;
+	//pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
+	for (;;) {
+		if ((l=getline(line, size, f)) < 0) {
+			rv = ferror(f) ? errno : 0;
+			free(*line);
+			*line = 0;
+			pw = 0;
+			break;
+		}
+		line[0][l-1] = 0;
+
+		s = line[0];
+		pw->pw_name = s++;
+		if (!(s = strchr(s, ':'))) continue;
+
+		*s++ = 0; pw->pw_passwd = s;
+		if (!(s = strchr(s, ':'))) continue;
+
+		*s++ = 0; pw->pw_uid = atou(&s);
+		if (*s != ':') continue;
+
+		*s++ = 0; pw->pw_gid = atou(&s);
+		if (*s != ':') continue;
+
+		*s++ = 0; pw->pw_gecos = s;
+		if (!(s = strchr(s, ':'))) continue;
+
+		*s++ = 0; pw->pw_dir = s;
+		if (!(s = strchr(s, ':'))) continue;
+
+		*s++ = 0; pw->pw_shell = s;
+		break;
+	}
+	//pthread_setcancelstate(cs, 0);
+	*res = pw;
+	if (rv) errno = rv;
+	return rv;
+}
+
+static FILE *f;
+static char *line;
+static struct passwd pw;
+static size_t size;
+
+struct passwd *hardinfo_getpwent()
+{
+	struct passwd *res;
+#if(HARDINFO2_FLATPAK)
+	if (!f) f = fopen("/run/host/etc/passwd", "rbe");
+#else
+	if (!f) f = fopen("/etc/passwd", "rbe");
+#endif
+	if (!f) return 0;
+	__hardinfo_getpwent_a(f, &pw, &line, &size, &res);
+	return res;
+}
+
+
 void scan_users_do(void)
 {
     struct passwd *passwd_;
     GList *list=NULL, *a;
 
-    passwd_ = getpwent();
+    passwd_ = hardinfo_getpwent();
     if (!passwd_) return;
 
     if (users) {

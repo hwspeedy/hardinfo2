@@ -24,13 +24,98 @@
 gint comparGroups (gpointer a, gpointer b) {return strcmp( (char*)a, (char*)b );}
 
 gchar *groups = NULL;
+
+static unsigned atou(char **s)
+{
+	unsigned x;
+	for (x=0; (unsigned)(**s-'0')<10U; ++*s) x=10*x+(**s-'0');
+	return x;
+}
+
+int __hardinfo_getgrent_a(FILE *f, struct group *gr, char **line, size_t *size, char ***mem, size_t *nmem, struct group **res)
+{
+	ssize_t l;
+	char *s, *mems;
+	size_t i;
+	int rv = 0;
+	//int cs;
+	//pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
+	for (;;) {
+		if ((l=getline(line, size, f)) < 0) {
+			rv = ferror(f) ? errno : 0;
+			free(*line);
+			*line = 0;
+			gr = 0;
+			goto end;
+		}
+		line[0][l-1] = 0;
+
+		s = line[0];
+		gr->gr_name = s++;
+		if (!(s = strchr(s, ':'))) continue;
+
+		*s++ = 0; gr->gr_passwd = s;
+		if (!(s = strchr(s, ':'))) continue;
+
+		*s++ = 0; gr->gr_gid = atou(&s);
+		if (*s != ':') continue;
+
+		*s++ = 0; mems = s;
+		break;
+	}
+
+	for (*nmem=!!*s; *s; s++)
+		if (*s==',') ++*nmem;
+	free(*mem);
+	*mem = calloc(*nmem+1, sizeof(char *));
+	if (!*mem) {
+		rv = errno;
+		free(*line);
+		*line = 0;
+		gr = 0;
+		goto end;
+	}
+	if (*mems) {
+		mem[0][0] = mems;
+		for (s=mems, i=0; *s; s++)
+			if (*s==',') *s++ = 0, mem[0][++i] = s;
+		mem[0][++i] = 0;
+	} else {
+		mem[0][0] = 0;
+	}
+	gr->gr_mem = *mem;
+end:
+	//pthread_setcancelstate(cs, 0);
+	*res = gr;
+	if(rv) errno = rv;
+	return rv;
+}
+
+static FILE *f;
+static char *line, **mem;
+static struct group gr;
+
+struct group *hardinfo_getgrent()
+{
+	struct group *res;
+	size_t size=0, nmem=0;
+#if(HARDINFO2_FLATPAK)
+	if (!f) f = fopen("/run/host/etc/group", "rbe");
+#else
+	if (!f) f = fopen("/etc/group", "rbe");
+#endif
+	if (!f) return 0;
+	__hardinfo_getgrent_a(f, &gr, &line, &size, &mem, &nmem, &res);
+	return res;
+}
+
 void scan_groups_do(void)
 {
     struct group *group_;
     GList *list=NULL, *a;
 
     setgrent();
-    group_ = getgrent();
+    group_ = hardinfo_getgrent();
     if (!group_)
         return;
 
