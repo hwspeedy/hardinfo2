@@ -1104,6 +1104,18 @@ static void create_window(void)
     //Check packaging
     gchar *pkgok=NULL,*p;
     //minimum of packages installed by hardinfo2 package - as specified on README.md
+#if(HARDINFO2_FLATPAK)
+    //distro installed
+    //FIXME use udevadm
+    if(!check_program("dmidecode"))                               {p=pkgok;pkgok=g_strconcat("dmidecode\n", pkgok, NULL);g_free(p);}
+    if(strstr(PACK_REQ,"udisk") && !check_program("udisksctl"))   {p=pkgok;pkgok=g_strconcat("udisk2\n", pkgok, NULL);g_free(p);}
+    //Flatpak contains
+    //if(!check_program("xdg-open"))                                {p=pkgok;pkgok=g_strconcat("xdg-open / xdg-utils\n", pkgok, NULL);g_free(p);}
+    //if(strstr(PACK_REQ,"vulkan") && !check_program("vulkaninfo")) {p=pkgok;pkgok=g_strconcat("vulkaninfo / vulkan-tools\n", pkgok, NULL);g_free(p);}
+    //if(!check_program("glxinfo"))                                 {p=pkgok;pkgok=g_strconcat("glxinfo / mesa-utils\n", pkgok, NULL);g_free(p);}
+    //if(strstr(PACK_REQ,"iperf") && !check_program("iperf3"))      {p=pkgok;pkgok=g_strconcat("iperf3\n", pkgok, NULL);g_free(p);}
+    //if(strstr(PACK_REQ,"sysbench") && !check_program("sysbench")) {p=pkgok;pkgok=g_strconcat("sysbench\n", pkgok, NULL);g_free(p);}
+#else
     if(!check_program("awk"))                                     {p=pkgok;pkgok=g_strconcat("gawk\n", pkgok, NULL);g_free(p);}
     if(!check_program("dmidecode"))                               {p=pkgok;pkgok=g_strconcat("dmidecode\n", pkgok, NULL);g_free(p);}
     if(!check_program("xdg-open"))                                {p=pkgok;pkgok=g_strconcat("xdg-open / xdg-utils\n", pkgok, NULL);g_free(p);}
@@ -1112,6 +1124,7 @@ static void create_window(void)
     if(!check_program("glxinfo"))                                 {p=pkgok;pkgok=g_strconcat("glxinfo / mesa-utils\n", pkgok, NULL);g_free(p);}
     if(strstr(PACK_REQ,"iperf") && !check_program("iperf3"))      {p=pkgok;pkgok=g_strconcat("iperf3\n", pkgok, NULL);g_free(p);}
     if(strstr(PACK_REQ,"sysbench") && !check_program("sysbench")) {p=pkgok;pkgok=g_strconcat("sysbench\n", pkgok, NULL);g_free(p);}
+#endif
     //no binary in qt5/6-base package
     //randr optional
     //if(strstr(PACK_REQ,"randr") && !check_program("xrandr"))      {p=pkgok;pkgok=g_strconcat("xrandr\n", pkgok, NULL);g_free(p);}
