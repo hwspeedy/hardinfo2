@@ -142,7 +142,7 @@ void scan_groups_do(void)
 				     _("Members"), members);
 
         list=g_list_prepend(list,g_strdup_printf("%s,%s,%d,%s", key, group_->gr_name, group_->gr_gid, val));
-        group_ = getgrent();
+        group_ = hardinfo_getgrent();
     }
     
     endgrent();

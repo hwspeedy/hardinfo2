@@ -125,7 +125,7 @@ void scan_users_do(void)
 
         strend(passwd_->pw_gecos, ',');
         list = g_list_prepend(list, g_strdup_printf("%s,%s,%s,%s,%d", key, passwd_->pw_name, passwd_->pw_gecos, val, passwd_->pw_uid));
-        passwd_ = getpwent();
+        passwd_ = hardinfo_getpwent();
         g_free(key);
         g_free(val);
     }
