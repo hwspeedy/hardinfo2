@@ -54,8 +54,7 @@ void scan_filesystems(void)
     g_free(fs_list);
     fs_list = g_strdup("");
     moreinfo_del_with_prefix("COMP:FS");
-
-    if(!hardinfo_file_get_contents("/etc/mtab", &buf, NULL, NULL)) return;
+    if(!hardinfo_file_get_contents("/proc/self/mounts", &buf, NULL, NULL)) return;
     buf=strreplace(buf,"\r","");
     fslines=g_strsplit(buf,"\n",0);
     g_free(buf);
