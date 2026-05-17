@@ -927,8 +927,19 @@ gchar *get_os_kernel(void)
 gchar *get_os(void)
 {
     scan_os(FALSE);
-    if(computer->os->distrocode) return g_strdup_printf("%s (%s)",computer->os->distro,computer->os->distrocode);
-    return g_strdup(computer->os->distro);
+    if(computer->os->distrocode) {
+#if(HARDINFO2_FLATPAK)
+        return g_strdup_printf("%s (%s flatpak)", computer->os->distro, computer->os->distrocode);
+#else
+        return g_strdup_printf("%s (%s)", computer->os->distro, computer->os->distrocode);
+#endif
+    } else {
+#if(HARDINFO2_FLATPAK)
+        return g_strdup_printf("%s (flatpak)", computer->os->distro);
+#else
+        return g_strdup(computer->os->distro);
+#endif
+    }
 }
 
 gchar *get_os_short(void)
