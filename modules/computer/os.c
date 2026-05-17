@@ -795,6 +795,7 @@ computer_get_selinux(void)
     if (!found)
         return _("Not installed");
     g_free(found);
+    printf("SELINUXENABLED FOUND\n");
 #endif
     gboolean spawned = hardinfo_spawn_command_line_sync("selinuxenabled", NULL, NULL, &r, NULL);
 
