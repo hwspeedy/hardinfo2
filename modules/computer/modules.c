@@ -93,8 +93,12 @@ void scan_modules_do(void) {
     module_icons = NULL;
     moreinfo_del_with_prefix("COMP:MOD");
 
+#if(HARDINFO2_FLATPAK)
+    lsmod_path=("flatpak-spawn --host lsmod");
+#else
     lsmod_path = find_program("lsmod");
     if (!lsmod_path) return;
+#endif
     lsmod = popen(lsmod_path, "r");
     if (!lsmod) {
         g_free(lsmod_path);
@@ -122,8 +126,11 @@ void scan_modules_do(void) {
         sscanf(list->data, "%s %ld", modname, &memory);
 
         hashkey = g_strdup_printf("MOD%s", modname);
-        buf = g_strdup_printf("/sbin/modinfo %s 2>/dev/null", modname);
-
+#if(HARDINFO2_FLATPAK)
+    buf = g_strdup_printf("flatpak-spawn --host /sbin/modinfo %s 2>/dev/null", modname);
+#else
+    buf = g_strdup_printf("/sbin/modinfo %s 2>/dev/null", modname);
+#endif
         modi = popen(buf, "r");
         while (fgets(buffer, 1024, modi) && strlen(buffer)) {
             gchar **tmp = g_strsplit(buffer, ":", 2);
