@@ -595,8 +595,19 @@ gchar *callback_os(void)
     info_set_view_type(info, SHELL_VIEW_DETAIL);
 
     if(computer->os->distroid) distro_icon = g_strdup_printf("LARGEdistros/%s.svg",computer->os->distroid);
-    if(computer->os->distrocode) distro = g_strdup_printf("%s (%s)", computer->os->distro, computer->os->distrocode); else distro=g_strdup(computer->os->distro);
-
+    if(computer->os->distrocode) {
+#if(HARDINFO2_FLATPAK)
+        distro = g_strdup_printf("%s (%s flatpak)", computer->os->distro, computer->os->distrocode);
+#else
+        distro = g_strdup_printf("%s (%s)", computer->os->distro, computer->os->distrocode);
+#endif	
+    } else {
+#if(HARDINFO2_FLATPAK)
+        distro = g_strdup_printf("%s (flatpak)", computer->os->distro);
+#else
+        distro=g_strdup(computer->os->distro);
+#endif
+    }
     p1=strwrap(computer->os->kcmdline,80,' ');
     if(!p1) p1=g_strdup(_("Unknown"));
     info_add_group(
