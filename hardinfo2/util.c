@@ -1392,6 +1392,7 @@ gboolean hardinfo_file_test(const gchar* filename, GFileTest test)
     ret=g_file_test(file_name,test);
 
 #if(HARDINFO2_FLATPAK)
+    printf("file test %s=%d\n",file_name,ret?1:0);
     g_free(file_name);
 #endif
 
