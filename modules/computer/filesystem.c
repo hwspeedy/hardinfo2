@@ -46,7 +46,6 @@ static gint filesystem_sort(gchar *linea, gchar *lineb)
 void scan_filesystems(void)
 {
     gchar *buf;
-    static struct statfs sfs;
     int count = 0;
     GList *fs=NULL,*p;
     gchar **fslines;
@@ -82,21 +81,27 @@ void scan_filesystems(void)
 	if(tmp && tmp[1]) {
 #if(HARDINFO2_FLATPAK)
 	    gchar *t=g_strconcat("df ", tmp[1], NULL);
-	    found=hardinfo_spawn_command_line_sync(t, &buf, NULL, NULL, NULL);
+	    gboolean found=hardinfo_spawn_command_line_sync(t, &buf, NULL, NULL, NULL);
 	    g_free(t);
 	    if(found && strstr(buf,"Filesystem") ){
 	        t=strstr(buf,"\n");
 	        if(t) {
 		    t++;
-		    gchar **a=g_split(t," ");
-		    size = (float) atoi(a[2])>>10;
-		    avail = (float) atoi(a[4]);
+		    while(*t && *t!=' ') t++;
+		    while(*t && *t==' ') t++;
+		    size = (float)atol(t) * 1024;
+		    while(*t && *t!=' ') t++;
+		    while(*t && *t==' ') t++;
+		    while(*t && *t!=' ') t++;
+		    while(*t && *t==' ') t++;
+		    avail = (float)atol(t) * 1024;
 		    used = size - avail;
 	            if(size) stat_fs=2;
 	        }
 	    }
 	    g_free(buf);buf=NULL;
 #else
+	    struct statfs sfs;
 	    if(!statfs(tmp[1],&sfs)){
                 size = (float) sfs.f_bsize * (float) sfs.f_blocks;
                 avail = (float) sfs.f_bsize * (float) sfs.f_bavail;
