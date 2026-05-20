@@ -46,7 +46,7 @@ static gint filesystem_sort(gchar *linea, gchar *lineb)
 void scan_filesystems(void)
 {
     gchar *buf;
-    struct statfs sfs;
+    static struct statfs sfs;
     int count = 0;
     GList *fs=NULL,*p;
     gchar **fslines;
@@ -55,16 +55,18 @@ void scan_filesystems(void)
     fs_list = g_strdup("");
     moreinfo_del_with_prefix("COMP:FS");
 #if(HARDINFO2_FLATPAK)
-    
     if(!hardinfo_spawn_command_line_sync("cat /etc/mtab", &buf, NULL, NULL, NULL)) return;
 #else
     if(!hardinfo_file_get_contents("/etc/mtab", &buf, NULL, NULL)) return;
 #endif
     buf=strreplace(buf,"\r","");
     fslines=g_strsplit(buf,"\n",0);
-    g_free(buf);
+    g_free(buf);buf=NULL;
 
-    gint i=0; while(fslines && fslines[i] && strlen(fslines[i])) fs=g_list_append(fs, g_strdup(fslines[i++]));
+    gint i=0;
+    while(fslines && fslines[i] && strlen(fslines[i])) {
+        fs=g_list_append(fs, g_strdup(fslines[i++]));
+    }
     g_strfreev(fslines);
 
     fs=g_list_sort(fs,(GCompareFunc)filesystem_sort);
@@ -72,70 +74,90 @@ void scan_filesystems(void)
     while (p && p->data) {
         gfloat size, used, avail;
         gchar **tmp=NULL;
+	int stat_fs;
+	stat_fs=0;
 
         tmp = g_strsplit((gchar *)p->data, " ", 0);
-        if(tmp && tmp[1]) if (!statfs(tmp[1], &sfs)) {
-                gfloat use_ratio;
 
-		//support subvolumes like btrfs
-		gchar *atsubvol=strstr(tmp[3],"subvol=/@");
-		if(atsubvol) {
-		    gchar *newtmp0=g_strconcat(tmp[0],atsubvol+8,NULL);
-		    g_free(tmp[0]);
-		    tmp[0]=newtmp0;
-		    strend(tmp[0],',');
-		}
-
+	if(tmp && tmp[1]) {
+#if(HARDINFO2_FLATPAK)
+	    gchar *t=g_strconcat("df ", tmp[1], NULL);
+	    found=hardinfo_spawn_command_line_sync(t, &buf, NULL, NULL, NULL);
+	    g_free(t);
+	    if(found && strstr(buf,"Filesystem") ){
+	        t=strstr(buf,"\n");
+	        if(t) {
+		    t++;
+		    gchar **a=g_split(t," ");
+		    size = (float) atoi(a[2])>>10;
+		    avail = (float) atoi(a[4]);
+		    used = size - avail;
+	            if(size) stat_fs=2;
+	        }
+	    }
+	    g_free(buf);buf=NULL;
+#else
+	    if(!statfs(tmp[1],&sfs)){
                 size = (float) sfs.f_bsize * (float) sfs.f_blocks;
                 avail = (float) sfs.f_bsize * (float) sfs.f_bavail;
                 used = size - avail;
+		if(size) stat_fs=1;
+	    }
+#endif
+	}
+	if(stat_fs) {
+	    gfloat use_ratio;
 
-                if (size == 0.0f) {
-		    p=p->next;
-                    continue;
-                }
+	    //support subvolumes like btrfs
+	    gchar *atsubvol=strstr(tmp[3],"subvol=/@");
+	    if(atsubvol) {
+	      gchar *newtmp0=g_strconcat(tmp[0],atsubvol+8,NULL);
+	      g_free(tmp[0]);
+	      tmp[0]=newtmp0;
+	      strend(tmp[0],',');
+	    }
 
-                if (avail == 0.0f) {
-                    use_ratio = 100.0f;
-                } else {
-                    use_ratio = 100.0f * (used / size);
-                }
+	    if (avail == 0.0f) {
+	      use_ratio = 100.0f;
+	    } else {
+	      use_ratio = 100.0f * (used / size);
+	    }
 
-                gchar *strsize = size_human_readable(size),
-                      *stravail = size_human_readable(avail),
-                      *strused = size_human_readable(used);
+	    gchar *strsize = size_human_readable(size),
+	      *stravail = size_human_readable(avail),
+	      *strused = size_human_readable(used);
 
-                gchar *strhash;
+	    gchar *strhash;
 
-                gboolean rw = strstr(tmp[3], "rw") != NULL;
+	    gboolean rw = strstr(tmp[3], "rw") != NULL;
 
-                strreplace_chr(tmp[0], '#', '_');
-                strhash = g_strdup_printf("[%s]\n"
-                        "%s=%s\n"
-                        "%s=%s\n"
-                        "%s=%s\n"
-                        "%s=%s\n"
-                        "%s=%s\n"
-                        "%s=%s\n",
-                        tmp[0], /* path */
-                        _("Filesystem"), tmp[2],
-                        _("Mounted As"), rw ? _("Read-Write") : _("Read-Only"),
-                        _("Mount Point"), tmp[1],
-                        _("Size"), strsize,
-                        _("Used"), strused,
-                        _("Available"), stravail);
-                gchar *key = g_strdup_printf("FS%d", ++count);
-                moreinfo_add_with_prefix("COMP", key, strhash);
-                g_free(key);
+	    strreplace_chr(tmp[0], '#', '_');
+	    strhash = g_strdup_printf("[%s]\n"
+				      "%s=%s\n"
+				      "%s=%s\n"
+				      "%s=%s\n"
+				      "%s=%s\n"
+				      "%s=%s\n"
+				      "%s=%s\n",
+				      tmp[0], /* path */
+				      _("Filesystem"), tmp[2],
+				      _("Mounted As"), rw ? _("Read-Write") : _("Read-Only"),
+				      _("Mount Point"), tmp[1],
+				      _("Size"), strsize,
+				      _("Used"), strused,
+				      _("Available"), stravail);
+	    gchar *key = g_strdup_printf("FS%d", ++count);
+	    moreinfo_add_with_prefix("COMP", key, strhash);
+	    g_free(key);
 
-                fs_list = h_strdup_cprintf("$FS%d$%s%s=%.2f %% (%s of %s)|%s\n",
-                                          fs_list,
-                                          count, tmp[0], rw ? "" : "🔒",
-                                          use_ratio, stravail, strsize, tmp[1]);
-                g_free(strsize);
-                g_free(stravail);
-                g_free(strused);
-        }
+	    fs_list = h_strdup_cprintf("$FS%d$%s%s=%.2f %% (%s of %s)|%s\n",
+				       fs_list,
+				       count, tmp[0], rw ? "" : "🔒",
+				       use_ratio, stravail, strsize, tmp[1]);
+	    g_free(strsize);
+	    g_free(stravail);
+	    g_free(strused);
+	}
         g_strfreev(tmp);tmp=NULL;
 	p=p->next;
     }
