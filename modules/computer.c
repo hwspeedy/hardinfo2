@@ -139,7 +139,11 @@ gchar *hi_get_field(gchar * field)
 
     if (g_str_equal0(label, _("Memory"))) {
         MemoryInfo *mi = computer_get_memory();
-        tmp = g_strdup_printf(_("%dMB (%dMB used)"), mi->total, mi->used);
+        if (mi->zswapped) {
+            tmp = g_strdup_printf(_("%dMB (%dMB used, %dMB compressed)"), mi->total, mi->used, mi->zswapped);
+        } else {
+            tmp = g_strdup_printf(_("%dMB (%dMB used)"), mi->total, mi->used);
+        }
         g_free(mi);
     } else if (g_str_equal0(label, _("Uptime"))) {
         tmp = computer_get_formatted_uptime();
@@ -633,6 +637,25 @@ gchar *callback_os(void)
                    info_field_update(_("Load Average"), 10000),
                    info_field_last());
 
+    gchar *maximum_pool_percent = NULL;
+    gchar *accept_thresh_percent = NULL;
+    if (computer->os->zswap.enabled) {
+        maximum_pool_percent = g_strdup_printf("%d%%", computer->os->zswap.max_pool_percent);
+        accept_thresh_percent = g_strdup_printf("%d%%", computer->os->zswap.accept_threshold_percent);
+        info_add_group(info, _("Memory Compression (ZSwap)"),
+                       info_field(_("Compression"),
+                           computer->os->zswap.compressor ? : _("N/A")),
+                       info_field(_("Shrinker Enabled"),
+                           computer->os->zswap.shrinker_enabled ? _("Yes") : _("No")),
+                       info_field(_("Maximum Pool Percent"), maximum_pool_percent),
+                       info_field(_("Accept Threshold Percent"), accept_thresh_percent),
+                       info_field_last());
+    } else {
+        info_add_group(info, _("Memory Compression (ZSwap)"),
+                       info_field(_("Compression"), _("Disabled")),
+                       info_field_last());
+    }
+
     info_add_group(info, _("Note"),
                    info_field(_("Logo"),_("belongs to distro and may be reg. trademark")),
                    info_field_last());
@@ -640,6 +663,8 @@ gchar *callback_os(void)
     p=info_flatten(info);
     g_free(distro);
     g_free(distro_icon);
+    g_free(maximum_pool_percent);
+    g_free(accept_thresh_percent);
     return p;
 
 }
@@ -679,10 +704,12 @@ gchar *callback_security(void)
         info_field_last());
 
     p3=computer_get_lsm();
+    gchar *landlock = computer_get_landlock_abi_version();
     info_add_group(
         info, _("Linux Security Modules"),
         info_field(_("Modules available"), p3),
         info_field(_("SELinux status"), computer_get_selinux()),
+        info_field(_("Landlock ABI version"), landlock),
         info_field_last());
 
     GDir *dir = g_dir_open("/sys/devices/system/cpu/vulnerabilities", 0, NULL);
@@ -725,6 +752,7 @@ gchar *callback_security(void)
 
     p=info_flatten(info);
     g_free(systype_str); g_free(p1); g_free(p2); g_free(p3);
+    g_free(landlock);
     return p;
 }
 

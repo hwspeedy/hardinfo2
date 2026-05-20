@@ -110,10 +110,18 @@ struct _OperatingSystem {
     gchar *boots;
 
     gchar *entropy_avail;
+
+    struct {
+        gchar *compressor;
+        int max_pool_percent;
+        int accept_threshold_percent;
+        gboolean shrinker_enabled;
+        gboolean enabled;
+    } zswap;
 };
 
 struct _MemoryInfo {
-    gint total, used, free, cached;
+    gint total, used, free, cached, zswapped;
     gfloat ratio;
 };
 
@@ -138,6 +146,7 @@ gchar *computer_get_entropy_avail(void);
 gchar *computer_get_aslr(void);
 gchar *computer_get_dmesg_status(void);
 const gchar *computer_get_selinux(void);
+gchar *computer_get_landlock_abi_version(void);
 gchar *computer_get_lsm(void);
 
 OperatingSystem *computer_get_os(void);
