@@ -840,10 +840,13 @@ gchar *
 computer_get_lsm(void)
 {
     gchar *contents;
-
-    if (!hardinfo_file_get_contents("/sys/kernel/security/lsm", &contents, NULL, NULL))
+#if(HARDINFO2_FLATPAK)
+    if(!hardinfo_spawn_command_line_sync("cat /sys/kernel/security/lsm", &contents, NULL, NULL, NULL))
         return g_strdup(_("Unknown"));
-
+#else
+    if (!g_file_get_contents("/sys/kernel/security/lsm", &contents, NULL, NULL))
+        return g_strdup(_("Unknown"));
+#endif
     return contents;
 }
 
